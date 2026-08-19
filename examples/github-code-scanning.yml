@@ -1,0 +1,29 @@
+name: Basalt Kubernetes
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  kubernetes-security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Basalt Kubernetes
+        run: pip install basalt-k8s
+      - name: Scan manifests and produce SARIF
+        run: basalt-k8s scan . --output results.sarif --fail-on high
+      - name: Upload Basalt Kubernetes SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: results.sarif
+          category: basalt-k8s
